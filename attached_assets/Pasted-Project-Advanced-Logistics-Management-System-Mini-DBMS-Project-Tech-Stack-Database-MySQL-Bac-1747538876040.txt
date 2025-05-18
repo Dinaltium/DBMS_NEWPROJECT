@@ -1,0 +1,99 @@
+Project: Advanced Logistics Management System (Mini DBMS Project)
+
+Tech Stack:
+
+Database: MySQL
+
+Backend: Node.js + Express
+
+Mobile App: Flutter (in a separate folder)
+
+Web App: React.js with TypeScript (in a separate folder)
+
+Hosting: Use reliable platforms like Netlify, Render, or any alternative that supports Node.js backend and React/Flutter frontends.
+
+Core Features:
+
+Login System:
+
+Unified login page with a toggle switch (top-right) to switch between Employee and Admin login.
+
+On successful login, session should persist until 2 hours of inactivity.
+
+Login credentials:
+
+Username: Employee ID (format: AL00CA<randomNumber>)
+
+Password: Default password AL2023
+
+Add a "Forgot Password" feature:
+
+For Employees: triggers password update in the database.
+
+For Admins: password changes will only be handled manually through the database (an admin settings option will be defined later).
+
+Sample User Data:
+
+Employees:
+
+Sandeep Kumar
+
+M Moidin Thameem
+
+T Mohammed Jazeel (Manager role)
+
+U S Mohammad Muzzamil
+
+Prashanth Hiregoudra
+
+Admins:
+
+Rafan Ahamad Sheik
+
+Akash Mathad
+
+User Roles & Capabilities:
+
+Employee Panel:
+
+View and manage personal profile.
+
+Settings include:
+
+Change name (limited to once every 6 months).
+
+Add/edit Date of Birth, Phone Number, Email.
+
+Change password.
+
+Toggle UI mode: Dark / Light / System Default.
+
+Set status (Available / Busy / Away).
+➤ Only T Mohammed Jazeel (Manager) has access to this manual status toggle.
+
+Admin Panel:
+
+Full CRUD access to all user profiles and database entries.
+
+Add/edit/delete employees.
+
+Assign and manage tasks.
+
+Monitor logistics and resources.
+
+Settings include:
+
+Unlimited changes to name, dob, phone, email, password.
+
+Toggle UI themes (Dark / Light / System).
+
+UI/UX:
+
+Clean, modern, futuristic, and professional design.
+
+Smooth page transitions and animations.
+
+Responsive design for both web and mobile platforms.
+
+Note: Please structure the backend, frontend (React), and mobile app (Flutter) in clearly separated folders for modular development and deployment.
+
