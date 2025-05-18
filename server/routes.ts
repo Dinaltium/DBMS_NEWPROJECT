@@ -22,7 +22,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    if (req.user.role !== 'admin') {
+    if (req.user && req.user.role !== 'admin') {
       return res.status(403).json({ message: "Insufficient permissions" });
     }
     next();
@@ -43,7 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       
       // Non-admins can only view their own profile
-      if (req.user.role !== 'admin' && req.user.id !== id) {
+      if (req.user && req.user.role !== 'admin' && req.user.id !== id) {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
       
@@ -63,12 +63,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       
       // Non-admins can only update their own profile
-      if (req.user.role !== 'admin' && req.user.id !== id) {
+      if (req.user && req.user.role !== 'admin' && req.user.id !== id) {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
       
       // Check name change restrictions for employees
-      if (req.body.name && req.user.role === 'employee') {
+      if (req.body.name && req.user && req.user.role === 'employee') {
         const user = await storage.getUser(id);
         if (!user) {
           return res.status(404).json({ message: "User not found" });
@@ -87,7 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Only manager can update status
-      if (req.body.status && req.user.name !== 'T Mohammed Jazeel' && req.user.role !== 'admin') {
+      if (req.body.status && req.user && req.user.name !== 'T Mohammed Jazeel' && req.user.role !== 'admin') {
         return res.status(403).json({ 
           message: "Only managers can update status" 
         });
