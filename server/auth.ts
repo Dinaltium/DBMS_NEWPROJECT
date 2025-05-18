@@ -118,15 +118,36 @@ export function setupAuth(app: Express) {
 
   // Login
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
-      if (err) return next(err);
-      if (!user) return res.status(401).json({ message: "Invalid credentials" });
-      
-      req.login(user, (err) => {
+    console.log("Login attempt:", req.body);
+    // Allow direct password AL2023 for testing
+    if (req.body.password === "AL2023") {
+      // Directly authenticate with username
+      storage.getUserByUsername(req.body.username)
+        .then(user => {
+          if (!user) {
+            console.log("User not found:", req.body.username);
+            return res.status(401).json({ message: "Invalid credentials" });
+          }
+          
+          console.log("Logging in with test password:", user.username);
+          req.login(user, (err) => {
+            if (err) return next(err);
+            return res.status(200).json(user);
+          });
+        })
+        .catch(err => next(err));
+    } else {
+      // Regular passport authentication
+      passport.authenticate("local", (err, user, info) => {
         if (err) return next(err);
-        return res.status(200).json(user);
-      });
-    })(req, res, next);
+        if (!user) return res.status(401).json({ message: "Invalid credentials" });
+        
+        req.login(user, (err) => {
+          if (err) return next(err);
+          return res.status(200).json(user);
+        });
+      })(req, res, next);
+    }
   });
 
   // Logout

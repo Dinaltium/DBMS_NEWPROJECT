@@ -36,6 +36,56 @@ export class DatabaseStorage implements IStorage {
       pool,
       createTableIfMissing: true,
     });
+    
+    // Initialize sample users if they don't exist
+    this.seedInitialUsers().catch(console.error);
+  }
+
+  // Add method to seed initial users
+  async seedInitialUsers(): Promise<void> {
+    console.log("Checking if sample users need to be created...");
+    
+    // Check if admin user exists
+    const adminUser = await this.getUserByUsername("rafan");
+    if (!adminUser) {
+      console.log("Creating admin user: rafan");
+      await this.createUser({
+        username: "rafan",
+        password: "AL2023",
+        name: "Rafan Ahamad Sheik",
+        employeeId: "AL001",
+        email: "rafan@aviation.com",
+        role: "admin"
+      });
+    }
+    
+    // Check if manager user exists
+    const managerUser = await this.getUserByUsername("jazeel");
+    if (!managerUser) {
+      console.log("Creating manager user: jazeel");
+      await this.createUser({
+        username: "jazeel",
+        password: "AL2023",
+        name: "T Mohammed Jazeel",
+        employeeId: "AL002",
+        email: "jazeel@aviation.com",
+        role: "manager"
+      });
+    }
+    
+    // Check if employee user exists
+    const employeeUser = await this.getUserByUsername("sandeep");
+    if (!employeeUser) {
+      console.log("Creating employee user: sandeep");
+      await this.createUser({
+        username: "sandeep",
+        password: "AL2023",
+        name: "Sandeep Kumar",
+        employeeId: "AL003",
+        email: "sandeep@aviation.com",
+        role: "employee"
+      });
+    }
   }
 
   // User methods

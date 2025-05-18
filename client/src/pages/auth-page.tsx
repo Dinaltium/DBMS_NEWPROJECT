@@ -114,9 +114,9 @@ export default function AuthPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <h1 className="text-4xl font-bold mb-4">Advanced Logistics Management</h1>
+                <h1 className="text-4xl font-bold mb-4">DBMS Mini Project: Aviation Logistics</h1>
                 <p className="text-blue-100 mb-8">
-                  Streamline your logistics operations with our comprehensive management system.
+                  Created by
                 </p>
               </motion.div>
               
@@ -131,8 +131,8 @@ export default function AuthPage() {
                     <Truck className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="font-medium">Fleet Management</h3>
-                    <p className="text-sm text-blue-100">Track and optimize your delivery fleet</p>
+                    <h3 className="font-medium">Rafan Ahamad Sheik</h3>
+                    <p className="text-sm text-blue-100">4PA23CS102</p>
                   </div>
                 </div>
                 
@@ -141,8 +141,8 @@ export default function AuthPage() {
                     <Package className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="font-medium">Inventory Tracking</h3>
-                    <p className="text-sm text-blue-100">Real-time inventory management</p>
+                    <h3 className="font-medium">Shaikh Mohammed Shahil</h3>
+                    <p className="text-sm text-blue-100">4PA23CS127</p>
                   </div>
                 </div>
                 
@@ -151,8 +151,18 @@ export default function AuthPage() {
                     <Server className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="font-medium">Data Analytics</h3>
-                    <p className="text-sm text-blue-100">Insights to optimize your operations</p>
+                    <h3 className="font-medium">Mustafa Muhammad</h3>
+                    <p className="text-sm text-blue-100">4PA22CS092</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    <Shield className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Mishab K</h3>
+                    <p className="text-sm text-blue-100">4PA23CS073</p>
                   </div>
                 </div>
               </motion.div>
@@ -164,7 +174,7 @@ export default function AuthPage() {
               transition={{ delay: 0.6, duration: 0.8 }}
             >
               <p className="text-sm text-blue-100 mt-8">
-                © 2025 Advanced Logistics Management System
+                © 2025 Aviation Logistics
               </p>
             </motion.div>
           </div>
