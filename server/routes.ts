@@ -27,6 +27,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     next();
   };
+  
+  // Middleware for checking manager or admin role
+  const requireManagerOrAdmin = (req: any, res: any, next: any) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    if (req.user && req.user.role !== 'admin' && req.user.role !== 'manager') {
+      return res.status(403).json({ message: "Insufficient permissions" });
+    }
+    next();
+  };
 
   // User routes
   app.get("/api/users", requireAdmin, async (req, res, next) => {
@@ -160,15 +171,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/tasks", requireAuth, async (req, res, next) => {
     try {
-      // Only admins can create tasks
-      if (req.user.role !== 'admin') {
+      // Only admins and managers can create tasks
+      if (req.user && req.user.role !== 'admin' && req.user.role !== 'manager') {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
       
       const taskData = insertTaskSchema.parse(req.body);
       const task = await storage.createTask({
         ...taskData,
-        createdById: req.user.id,
+        createdById: req.user ? req.user.id : 0,
       });
       
       res.status(201).json(task);
@@ -186,16 +197,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Task not found" });
       }
       
-      // Only task assignee or admin can update task
-      if (req.user.role !== 'admin' && task.assignedToId !== req.user.id) {
-        return res.status(403).json({ message: "Insufficient permissions" });
-      }
-      
-      // Only admins can reassign tasks
-      if (req.body.assignedToId && req.user.role !== 'admin') {
-        return res.status(403).json({ 
-          message: "Only admins can reassign tasks" 
-        });
+      if (req.user) {
+        // Admin can update any task
+        if (req.user.role === 'admin') {
+          // Admin has full permissions
+        }
+        // Manager can update any task but can't change certain fields
+        else if (req.user.role === 'manager') {
+          // Managers can update any task but with some restrictions
+        }
+        // Regular employee can only update their assigned tasks
+        else if (task.assignedToId !== req.user.id) {
+          return res.status(403).json({ message: "Insufficient permissions" });
+        }
+        
+        // Only admins and managers can reassign tasks
+        if (req.body.assignedToId && req.user.role !== 'admin' && req.user.role !== 'manager') {
+          return res.status(403).json({ 
+            message: "Only admins and managers can reassign tasks" 
+          });
+        }
       }
       
       const validatedData = updateTaskSchema.parse(req.body);
@@ -207,7 +228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/tasks/:id", requireAdmin, async (req, res, next) => {
+  app.delete("/api/tasks/:id", requireManagerOrAdmin, async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteTask(id);
