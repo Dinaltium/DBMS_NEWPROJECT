@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:aviation_logistics/services/auth_service.dart';
+import 'package:aviation_logistics/services/task_service.dart';
 import 'package:aviation_logistics/screens/login_screen.dart';
 import 'package:aviation_logistics/screens/dashboard_screen.dart';
-import 'package:aviation_logistics/screens/tasks_screen.dart';
-import 'package:aviation_logistics/screens/employees_screen.dart';
-import 'package:aviation_logistics/screens/profile_screen.dart';
-import 'package:aviation_logistics/services/auth_service.dart';
-import 'package:provider/provider.dart';
+import 'package:aviation_logistics/config/app_routes.dart';
+import 'config/api_config.dart';
 
 void main() {
+  // Your backend server is running on port 5000, not 3000
+  // For Android Emulator:
+  ApiConfig.configureApi("http://10.0.2.2:5000/api");
+  // For web:
+  // ApiConfig.configureApi("http://localhost:5000/api");
+  // For physical device (use your computer's IP):
+  // ApiConfig.configureApi("http://192.168.x.x:5000/api");
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (_) => TaskService()),
       ],
       child: const MyApp(),
     ),
@@ -104,11 +113,8 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.system,
       home: AuthWrapper(),
       routes: {
-        '/login': (context) => const LoginScreen(),
-        '/dashboard': (context) => const DashboardScreen(),
-        '/tasks': (context) => const TasksScreen(),
-        '/employees': (context) => const EmployeesScreen(),
-        '/profile': (context) => const ProfileScreen(),
+        AppRoutes.login: (context) => const LoginScreen(),
+        AppRoutes.dashboard: (context) => const DashboardScreen(),
       },
     );
   }
@@ -128,11 +134,11 @@ class AuthWrapper extends StatelessWidget {
             ),
           );
         }
-        
+
         if (snapshot.hasData && snapshot.data == true) {
           return const DashboardScreen();
         }
-        
+
         return const LoginScreen();
       },
     );

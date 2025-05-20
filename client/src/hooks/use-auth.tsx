@@ -15,9 +15,21 @@ type AuthContextType = {
   loginMutation: UseMutationResult<User, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<User, Error, InsertUser>;
-  updateProfileMutation: UseMutationResult<User, Error, {id: number, data: UpdateUser}>;
-  forgotPasswordMutation: UseMutationResult<{message: string}, Error, {username: string}>;
-  changePasswordMutation: UseMutationResult<{message: string}, Error, {currentPassword: string, newPassword: string}>;
+  updateProfileMutation: UseMutationResult<
+    User,
+    Error,
+    { id: number; data: UpdateUser }
+  >;
+  forgotPasswordMutation: UseMutationResult<
+    { message: string },
+    Error,
+    { username: string }
+  >;
+  changePasswordMutation: UseMutationResult<
+    { message: string },
+    Error,
+    { currentPassword: string; newPassword: string }
+  >;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -44,6 +56,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Login successful",
         description: `Welcome, ${user.name}`,
       });
+      // Force redirect to dashboard after successful login
+      window.location.href = "/";
     },
     onError: (error: Error) => {
       toast({
@@ -96,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const updateProfileMutation = useMutation({
-    mutationFn: async ({id, data}: {id: number, data: UpdateUser}) => {
+    mutationFn: async ({ id, data }: { id: number; data: UpdateUser }) => {
       const res = await apiRequest("PUT", `/api/users/${id}`, data);
       return await res.json();
     },
@@ -117,8 +131,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const forgotPasswordMutation = useMutation({
-    mutationFn: async ({username}: {username: string}) => {
-      const res = await apiRequest("POST", "/api/forgot-password", { username });
+    mutationFn: async ({ username }: { username: string }) => {
+      const res = await apiRequest("POST", "/api/forgot-password", {
+        username,
+      });
       return await res.json();
     },
     onSuccess: (data) => {
@@ -137,8 +153,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const changePasswordMutation = useMutation({
-    mutationFn: async ({currentPassword, newPassword}: {currentPassword: string, newPassword: string}) => {
-      const res = await apiRequest("POST", "/api/change-password", { currentPassword, newPassword });
+    mutationFn: async ({
+      currentPassword,
+      newPassword,
+    }: {
+      currentPassword: string;
+      newPassword: string;
+    }) => {
+      const res = await apiRequest("POST", "/api/change-password", {
+        currentPassword,
+        newPassword,
+      });
       return await res.json();
     },
     onSuccess: (data) => {
@@ -167,7 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         registerMutation,
         updateProfileMutation,
         forgotPasswordMutation,
-        changePasswordMutation
+        changePasswordMutation,
       }}
     >
       {children}

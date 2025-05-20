@@ -31,18 +31,21 @@ mobile/
 ## Features
 
 ### Authentication
+
 - Login with username and password
 - Role-based access control (Admin, Manager, Employee)
 - User profile management
 - Password change functionality
 
 ### Dashboard
+
 - Overview of tasks and status
 - Quick stats on task completion
 - Task distribution visualization
 - Recently assigned tasks
 
 ### Task Management
+
 - View all tasks with filtering options
 - Create, edit, and delete tasks (Admin/Manager only)
 - Mark tasks as complete/in progress
@@ -50,6 +53,7 @@ mobile/
 - Task assignment to employees
 
 ### Employee Management (Admin only)
+
 - View all employees
 - Add, edit, and delete employees
 - Change employee roles and status
@@ -61,7 +65,7 @@ mobile/
 - **Provider**: State management
 - **HTTP**: API communication with backend
 - **SharedPreferences**: Local storage for user data
-- **FL Chart**: Data visualization 
+- **FL Chart**: Data visualization
 - **Flutter Slidable**: Swipe actions for tasks
 - **Animate Do**: Animation library for smooth transitions
 
@@ -71,22 +75,33 @@ mobile/
 2. Clone the repository
 3. Navigate to the mobile directory
 4. Run `flutter pub get` to install dependencies
-5. Update the API URL in the service files to point to your deployed backend
+5. Configure the API URL in the `lib/config/api_config.dart` file:
+   ```dart
+   // Update this line with your backend API URL
+   static String baseUrl = "https://your-backend-api.com/api";
+   ```
+   Alternatively, you can set it programmatically in `main.dart`:
+   ```dart
+   ApiConfig.configureApi("https://your-backend-api.com/api");
+   ```
 6. Run `flutter run` to start the application
 
 ## Usage
 
 ### Admin Access
+
 - Username: rafan
 - Password: AL2023
 - Full access to all features including employee management
 
 ### Manager Access
+
 - Username: jazeel
 - Password: AL2023
 - Access to task management and limited employee features
 
 ### Employee Access
+
 - Username: sandeep
 - Password: AL2023
 - Access to assigned tasks and personal profile

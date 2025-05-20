@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:aviation_logistics/services/auth_service.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:aviation_logistics/config/app_routes.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -28,14 +29,66 @@ class _LoginScreenState extends State<LoginScreen> {
   void _login() async {
     if (_formKey.currentState!.validate()) {
       final authService = Provider.of<AuthService>(context, listen: false);
-      
-      final success = await authService.login(
-        _usernameController.text.trim(), 
-        _passwordController.text.trim()
-      );
-      
-      if (success && mounted) {
-        Navigator.pushReplacementNamed(context, '/dashboard');
+
+      try {
+        // Show a loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return Dialog(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(width: 20),
+                    Text("Logging in...",
+                        style: Theme.of(context).textTheme.titleMedium),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+
+        // Attempt login
+        final success = await authService.login(
+            _usernameController.text.trim(), _passwordController.text.trim());
+
+        // Close the loading dialog
+        if (mounted) Navigator.of(context).pop();
+
+        // Navigate on success or show error
+        if (success && mounted) {
+          print("Login successful, navigating to dashboard");
+          // Use our AppRoutes helper for navigation
+          AppRoutes.navigateToDashboard(context);
+        } else if (mounted) {
+          // Show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authService.errorMessage ?? "Login failed"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        // Close the loading dialog if open
+        if (mounted) Navigator.of(context).pop();
+
+        // Show error message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Login error: $e"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+
+        print("Login exception: $e");
       }
     }
   }
@@ -45,13 +98,13 @@ class _LoginScreenState extends State<LoginScreen> {
     final authService = Provider.of<AuthService>(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
-            height: MediaQuery.of(context).size.height - 
-                MediaQuery.of(context).padding.top - 
+            height: MediaQuery.of(context).size.height -
+                MediaQuery.of(context).padding.top -
                 MediaQuery.of(context).padding.bottom,
             child: Column(
               children: [
@@ -61,9 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Left side - Hero section
                       Expanded(
                         child: Container(
-                          color: isDark 
-                              ? Color(0xFF1A237E) 
-                              : Color(0xFF3F51B5),
+                          color: isDark ? Color(0xFF1A237E) : Color(0xFF3F51B5),
                           padding: EdgeInsets.all(24),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +158,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   duration: Duration(milliseconds: 800),
                                   delay: Duration(milliseconds: 300),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       _buildTeamMemberCard(
                                         'Rafan Ahamad Sheik',
@@ -150,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      
+
                       // Right side - Login form
                       Expanded(
                         child: Container(
@@ -169,7 +221,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                       style: TextStyle(
                                         fontSize: 28,
                                         fontWeight: FontWeight.bold,
-                                        color: theme.textTheme.headline6?.color,
+                                        color:
+                                            theme.textTheme.titleLarge?.color,
                                       ),
                                     ),
                                     SizedBox(height: 8),
@@ -177,22 +230,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                       'Sign in to your account',
                                       style: TextStyle(
                                         fontSize: 16,
-                                        color: theme.textTheme.caption?.color,
+                                        color:
+                                            theme.textTheme.bodyMedium?.color,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                               SizedBox(height: 32),
-                              
+
                               // User type toggle
                               FadeInDown(
                                 delay: Duration(milliseconds: 200),
                                 duration: Duration(milliseconds: 500),
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: isDark 
-                                        ? Colors.grey[800] 
+                                    color: isDark
+                                        ? Colors.grey[800]
                                         : Colors.grey[200],
                                     borderRadius: BorderRadius.circular(30),
                                   ),
@@ -200,24 +254,30 @@ class _LoginScreenState extends State<LoginScreen> {
                                     children: [
                                       Expanded(
                                         child: GestureDetector(
-                                          onTap: () => setState(() => _isEmployee = true),
+                                          onTap: () => setState(
+                                              () => _isEmployee = true),
                                           child: Container(
-                                            padding: EdgeInsets.symmetric(vertical: 12),
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 12),
                                             decoration: BoxDecoration(
-                                              color: _isEmployee 
-                                                  ? (isDark ? Colors.blue[800] : Colors.blue)
+                                              color: _isEmployee
+                                                  ? (isDark
+                                                      ? Colors.blue[800]
+                                                      : Colors.blue)
                                                   : Colors.transparent,
-                                              borderRadius: BorderRadius.circular(30),
+                                              borderRadius:
+                                                  BorderRadius.circular(30),
                                             ),
                                             child: Center(
                                               child: Text(
                                                 'Employee',
                                                 style: TextStyle(
-                                                  color: _isEmployee 
-                                                      ? Colors.white 
-                                                      : theme.textTheme.bodyText2?.color,
-                                                  fontWeight: _isEmployee 
-                                                      ? FontWeight.bold 
+                                                  color: _isEmployee
+                                                      ? Colors.white
+                                                      : theme.textTheme
+                                                          .bodyMedium?.color,
+                                                  fontWeight: _isEmployee
+                                                      ? FontWeight.bold
                                                       : FontWeight.normal,
                                                 ),
                                               ),
@@ -227,24 +287,30 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                       Expanded(
                                         child: GestureDetector(
-                                          onTap: () => setState(() => _isEmployee = false),
+                                          onTap: () => setState(
+                                              () => _isEmployee = false),
                                           child: Container(
-                                            padding: EdgeInsets.symmetric(vertical: 12),
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 12),
                                             decoration: BoxDecoration(
-                                              color: !_isEmployee 
-                                                  ? (isDark ? Colors.blue[800] : Colors.blue)
+                                              color: !_isEmployee
+                                                  ? (isDark
+                                                      ? Colors.blue[800]
+                                                      : Colors.blue)
                                                   : Colors.transparent,
-                                              borderRadius: BorderRadius.circular(30),
+                                              borderRadius:
+                                                  BorderRadius.circular(30),
                                             ),
                                             child: Center(
                                               child: Text(
                                                 'Admin',
                                                 style: TextStyle(
-                                                  color: !_isEmployee 
-                                                      ? Colors.white 
-                                                      : theme.textTheme.bodyText2?.color,
-                                                  fontWeight: !_isEmployee 
-                                                      ? FontWeight.bold 
+                                                  color: !_isEmployee
+                                                      ? Colors.white
+                                                      : theme.textTheme
+                                                          .bodyMedium?.color,
+                                                  fontWeight: !_isEmployee
+                                                      ? FontWeight.bold
                                                       : FontWeight.normal,
                                                 ),
                                               ),
@@ -257,7 +323,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               SizedBox(height: 32),
-                              
+
                               // Login form
                               Expanded(
                                 child: FadeInUp(
@@ -266,19 +332,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                   child: Form(
                                     key: _formKey,
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
                                       children: [
                                         TextFormField(
                                           controller: _usernameController,
                                           decoration: InputDecoration(
                                             labelText: 'Username',
-                                            prefixIcon: Icon(Icons.person_outline),
+                                            prefixIcon:
+                                                Icon(Icons.person_outline),
                                             border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
                                           ),
                                           validator: (value) {
-                                            if (value == null || value.isEmpty) {
+                                            if (value == null ||
+                                                value.isEmpty) {
                                               return 'Please enter your username';
                                             }
                                             return null;
@@ -290,25 +360,29 @@ class _LoginScreenState extends State<LoginScreen> {
                                           obscureText: _obscurePassword,
                                           decoration: InputDecoration(
                                             labelText: 'Password',
-                                            prefixIcon: Icon(Icons.lock_outline),
+                                            prefixIcon:
+                                                Icon(Icons.lock_outline),
                                             suffixIcon: IconButton(
                                               icon: Icon(
-                                                _obscurePassword 
-                                                  ? Icons.visibility_off 
-                                                  : Icons.visibility,
+                                                _obscurePassword
+                                                    ? Icons.visibility_off
+                                                    : Icons.visibility,
                                               ),
                                               onPressed: () {
                                                 setState(() {
-                                                  _obscurePassword = !_obscurePassword;
+                                                  _obscurePassword =
+                                                      !_obscurePassword;
                                                 });
                                               },
                                             ),
                                             border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
                                           ),
                                           validator: (value) {
-                                            if (value == null || value.isEmpty) {
+                                            if (value == null ||
+                                                value.isEmpty) {
                                               return 'Please enter your password';
                                             }
                                             return null;
@@ -337,19 +411,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                         SizedBox(height: 24),
                                         ElevatedButton(
-                                          onPressed: authService.isLoading ? null : _login,
+                                          onPressed: authService.isLoading
+                                              ? null
+                                              : _login,
                                           style: ElevatedButton.styleFrom(
-                                            padding: EdgeInsets.symmetric(vertical: 16),
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 16),
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(12),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
                                           ),
                                           child: authService.isLoading
                                               ? CircularProgressIndicator(
-                                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(Colors.white),
                                                 )
                                               : Row(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
                                                   children: [
                                                     Icon(Icons.login),
                                                     SizedBox(width: 8),
@@ -357,7 +438,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                                       'Sign In',
                                                       style: TextStyle(
                                                         fontSize: 16,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                       ),
                                                     ),
                                                   ],
@@ -368,7 +450,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                               ),
-                              
+
                               if (authService.errorMessage != null)
                                 FadeIn(
                                   child: Container(
@@ -381,19 +463,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                     child: Row(
                                       children: [
-                                        Icon(Icons.error_outline, color: Colors.red),
+                                        Icon(Icons.error_outline,
+                                            color: Colors.red),
                                         SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
                                             authService.errorMessage!,
-                                            style: TextStyle(color: Colors.red[900]),
+                                            style: TextStyle(
+                                                color: Colors.red[900]),
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
                                 ),
-                                
+
                               SizedBox(height: 16),
                               FadeInUp(
                                 delay: Duration(milliseconds: 600),
@@ -422,7 +506,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-  
+
   Widget _buildTeamMemberCard(String name, String usn, IconData icon) {
     return Row(
       children: [

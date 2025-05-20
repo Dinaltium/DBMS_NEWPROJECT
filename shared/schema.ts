@@ -1,13 +1,38 @@
-import { pgTable, text, serial, integer, boolean, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  boolean,
+  timestamp,
+  pgEnum,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
 // Enums
-export const userRoleEnum = pgEnum('user_role', ['employee', 'admin', 'manager']);
-export const userStatusEnum = pgEnum('user_status', ['available', 'busy', 'away']);
-export const taskStatusEnum = pgEnum('task_status', ['pending', 'in_progress', 'completed', 'overdue']);
-export const taskPriorityEnum = pgEnum('task_priority', ['low', 'medium', 'high']);
+export const userRoleEnum = pgEnum("user_role", [
+  "employee",
+  "admin",
+  "manager",
+]);
+export const userStatusEnum = pgEnum("user_status", [
+  "available",
+  "busy",
+  "away",
+]);
+export const taskStatusEnum = pgEnum("task_status", [
+  "pending",
+  "in_progress",
+  "completed",
+  "overdue",
+]);
+export const taskPriorityEnum = pgEnum("task_priority", [
+  "low",
+  "medium",
+  "high",
+]);
 
 // Users table
 export const users = pgTable("users", {
@@ -19,10 +44,10 @@ export const users = pgTable("users", {
   email: text("email"),
   phone: text("phone"),
   dob: text("dob"),
-  role: userRoleEnum("role").notNull().default('employee'),
-  status: userStatusEnum("status").default('available'),
+  role: userRoleEnum("role").notNull().default("employee"),
+  status: userStatusEnum("status").default("available"),
   nameLastChanged: timestamp("name_last_changed", { withTimezone: true }),
-  theme: text("theme").default('system'),
+  theme: text("theme").default("system"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   lastActive: timestamp("last_active", { withTimezone: true }).defaultNow(),
 });
@@ -32,13 +57,37 @@ export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
-  status: taskStatusEnum("status").notNull().default('pending'),
-  priority: taskPriorityEnum("priority").notNull().default('medium'),
+  status: taskStatusEnum("status").notNull().default("pending"),
+  priority: taskPriorityEnum("priority").notNull().default("medium"),
   assignedToId: integer("assigned_to_id").references(() => users.id),
-  createdById: integer("created_by_id").references(() => users.id).notNull(),
+  createdById: integer("created_by_id")
+    .references(() => users.id)
+    .notNull(),
   dueDate: timestamp("due_date", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// Suppliers table
+export const suppliers = pgTable("suppliers", {
+  supplier_id: serial("supplier_id").primaryKey(),
+  first_name: text("first_name").notNull(),
+  last_name: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  country: text("country").notNull(),
+  zipcode: text("zipcode").notNull(),
+});
+
+// Orders table
+export const orders = pgTable("orders", {
+  order_id: serial("order_id").primaryKey(),
+  order_number: text("order_number").notNull().unique(),
+  order_date: text("order_date").notNull(),
+  status: text("status").notNull(),
+  item: text("item").notNull(),
 });
 
 // Relations
@@ -79,23 +128,40 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   updatedAt: true,
 });
 
-export const updateUserSchema = createInsertSchema(users).omit({
-  id: true,
-  password: true,
-  createdAt: true,
-}).partial();
+export const updateUserSchema = createInsertSchema(users)
+  .omit({
+    id: true,
+    password: true,
+    createdAt: true,
+  })
+  .partial();
 
 export const updateUserPasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
   newPassword: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-export const updateTaskSchema = createInsertSchema(tasks).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  createdById: true,
-}).partial();
+export const updateTaskSchema = createInsertSchema(tasks)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    createdById: true,
+  })
+  .partial();
+
+export const insertSupplierSchema = z.object({
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(1, "Phone is required"),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
+  country: z.string().min(1, "Country is required"),
+  zipcode: z.string().min(1, "Zipcode is required"),
+});
+
+export const updateSupplierSchema = insertSupplierSchema.partial();
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -106,3 +172,6 @@ export type InsertTask = z.infer<typeof insertTaskSchema>;
 export type Task = typeof tasks.$inferSelect;
 export type UpdateTask = z.infer<typeof updateTaskSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;
+
+export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
+export type UpdateSupplier = z.infer<typeof updateSupplierSchema>;

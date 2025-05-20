@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:aviation_logistics/models/user.dart';
 import 'package:aviation_logistics/services/auth_service.dart';
+import '../config/api_config.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -10,19 +11,20 @@ class ProfileScreen extends StatefulWidget {
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProviderStateMixin {
+class _ProfileScreenState extends State<ProfileScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _profileFormKey = GlobalKey<FormState>();
   final _passwordFormKey = GlobalKey<FormState>();
-  
+
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
-  
+
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   bool _isEditingProfile = false;
   bool _obscureCurrentPassword = true;
   bool _obscureNewPassword = true;
@@ -32,7 +34,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    
+
     // Load user data into form
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = Provider.of<AuthService>(context, listen: false).currentUser;
@@ -59,14 +61,15 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   void _saveProfile() async {
     if (_profileFormKey.currentState!.validate()) {
       final authService = Provider.of<AuthService>(context, listen: false);
-      
+
       try {
+        // This calls AuthService.updateProfile which already uses ApiConfig
         final success = await authService.updateProfile({
           'name': _nameController.text.trim(),
           'email': _emailController.text.trim(),
           'phone': _phoneController.text.trim(),
         });
-        
+
         if (success && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -92,7 +95,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   void _changePassword() async {
     if (_passwordFormKey.currentState!.validate()) {
       final authService = Provider.of<AuthService>(context, listen: false);
-      
+
       if (_newPasswordController.text != _confirmPasswordController.text) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -102,13 +105,13 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         );
         return;
       }
-      
+
       try {
         final success = await authService.changePassword(
           _currentPasswordController.text,
           _newPasswordController.text,
         );
-        
+
         if (success && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -116,7 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               backgroundColor: Colors.green,
             ),
           );
-          
+
           // Clear password fields
           _currentPasswordController.clear();
           _newPasswordController.clear();
@@ -138,7 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     final authService = Provider.of<AuthService>(context);
     final User? user = authService.currentUser;
     final theme = Theme.of(context);
-    
+
     if (user == null) {
       return Scaffold(
         appBar: AppBar(
@@ -149,7 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         ),
       );
     }
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Profile'),
@@ -188,7 +191,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                         radius: 50,
                         backgroundColor: theme.primaryColor,
                         child: Text(
-                          user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                          user.name.isNotEmpty
+                              ? user.name[0].toUpperCase()
+                              : 'U',
                           style: TextStyle(
                             fontSize: 36,
                             color: Colors.white,
@@ -222,7 +227,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               ],
             ),
           ),
-          
+
           // Security Tab
           SingleChildScrollView(
             padding: EdgeInsets.all(16),
@@ -254,10 +259,13 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         _buildInfoCard('Username', user.username),
         _buildInfoCard('Email', user.email ?? 'Not provided'),
         _buildInfoCard('Phone', user.phone ?? 'Not provided'),
-        _buildInfoCard('Status', '${user.status.substring(0, 1).toUpperCase()}${user.status.substring(1)}'),
-        _buildInfoCard('Last Active', user.lastActive != null 
-            ? '${user.lastActive!.day}/${user.lastActive!.month}/${user.lastActive!.year}' 
-            : 'Unknown'),
+        _buildInfoCard('Status',
+            '${user.status.substring(0, 1).toUpperCase()}${user.status.substring(1)}'),
+        _buildInfoCard(
+            'Last Active',
+            user.lastActive != null
+                ? '${user.lastActive!.day}/${user.lastActive!.month}/${user.lastActive!.year}'
+                : 'Unknown'),
       ],
     );
   }
@@ -317,7 +325,8 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
               if (value != null && value.isNotEmpty) {
-                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                    .hasMatch(value)) {
                   return 'Please enter a valid email';
                 }
               }
@@ -341,7 +350,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 onPressed: () {
                   setState(() {
                     // Reset form and exit editing mode
-                    final user = Provider.of<AuthService>(context, listen: false).currentUser;
+                    final user =
+                        Provider.of<AuthService>(context, listen: false)
+                            .currentUser;
                     if (user != null) {
                       _nameController.text = user.name;
                       _emailController.text = user.email ?? '';
@@ -382,7 +393,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               border: OutlineInputBorder(),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscureCurrentPassword ? Icons.visibility_off : Icons.visibility,
+                  _obscureCurrentPassword
+                      ? Icons.visibility_off
+                      : Icons.visibility,
                 ),
                 onPressed: () {
                   setState(() {
@@ -435,7 +448,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               border: OutlineInputBorder(),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                  _obscureConfirmPassword
+                      ? Icons.visibility_off
+                      : Icons.visibility,
                 ),
                 onPressed: () {
                   setState(() {

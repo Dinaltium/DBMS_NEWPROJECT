@@ -1,9 +1,26 @@
-import { users, tasks, type User, type InsertUser, type Task, type InsertTask, type UpdateTask, type UpdateUser } from "@shared/schema";
-import { db } from "./db";
+import {
+  users,
+  tasks,
+  type User,
+  type InsertUser,
+  type Task,
+  type InsertTask,
+  type UpdateTask,
+  type UpdateUser,
+  suppliers,
+  orders,
+} from "@shared/schema";
+import { db, sql as neonSql } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
-import { pool } from "./db";
+import pg from "pg";
+
+// Create a Pool from the DATABASE_URL for session store compatibility
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
 const PostgresSessionStore = connectPg(session);
 
@@ -16,7 +33,7 @@ export interface IStorage {
   updateUser(id: number, data: UpdateUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
   deleteUser(id: number): Promise<void>;
-  
+
   createTask(task: InsertTask): Promise<Task>;
   getTask(id: number): Promise<Task | undefined>;
   updateTask(id: number, data: UpdateTask): Promise<Task>;
@@ -24,8 +41,15 @@ export interface IStorage {
   getAllTasks(): Promise<Task[]>;
   getTasksByAssignee(userId: number): Promise<Task[]>;
   getRecentTasks(limit?: number): Promise<Task[]>;
-  
+
   sessionStore: any; // Will use the session store type from connect-pg-simple
+
+  getAllSuppliers(): Promise<any[]>;
+  createSupplier(data: any): Promise<any>;
+  updateSupplier(id: number, data: any): Promise<any>;
+  deleteSupplier(id: number): Promise<void>;
+
+  getAllOrders(): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -36,15 +60,17 @@ export class DatabaseStorage implements IStorage {
       pool,
       createTableIfMissing: true,
     });
-    
+
     // Initialize sample users if they don't exist
     this.seedInitialUsers().catch(console.error);
+    // Initialize sample suppliers if they don't exist
+    this.seedInitialSuppliers().catch(console.error);
   }
 
   // Add method to seed initial users
   async seedInitialUsers(): Promise<void> {
     console.log("Checking if sample users need to be created...");
-    
+
     // Check if admin user exists
     const adminUser = await this.getUserByUsername("rafan");
     if (!adminUser) {
@@ -55,10 +81,10 @@ export class DatabaseStorage implements IStorage {
         name: "Rafan Ahamad Sheik",
         employeeId: "AL001",
         email: "rafan@aviation.com",
-        role: "admin"
+        role: "admin",
       });
     }
-    
+
     // Check if manager user exists
     const managerUser = await this.getUserByUsername("jazeel");
     if (!managerUser) {
@@ -69,21 +95,30 @@ export class DatabaseStorage implements IStorage {
         name: "T Mohammed Jazeel",
         employeeId: "AL002",
         email: "jazeel@aviation.com",
-        role: "manager"
+        role: "manager",
       });
     }
-    
-    // Check if employee user exists
-    const employeeUser = await this.getUserByUsername("sandeep");
-    if (!employeeUser) {
-      console.log("Creating employee user: sandeep");
-      await this.createUser({
-        username: "sandeep",
-        password: "AL2023",
-        name: "Sandeep Kumar",
-        employeeId: "AL003",
+  }
+
+  // Add method to seed initial suppliers
+  async seedInitialSuppliers(): Promise<void> {
+    console.log("Checking if sample suppliers need to be created...");
+    // Check if Sandeep supplier exists
+    const suppliersList = await this.getAllSuppliers();
+    const sandeepExists = suppliersList.some(
+      (s) => s.email === "sandeep@aviation.com"
+    );
+    if (!sandeepExists) {
+      console.log("Creating supplier: Sandeep Kumar");
+      await this.createSupplier({
+        first_name: "Sandeep",
+        last_name: "Kumar",
         email: "sandeep@aviation.com",
-        role: "employee"
+        phone: "1234567890",
+        city: "YourCity",
+        state: "YourState",
+        country: "YourCountry",
+        zipcode: "123456",
       });
     }
   }
@@ -95,20 +130,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
     return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     try {
       // For testing purposes, check if we're using the test password AL2023
-      console.log("Creating user with data:", { ...insertUser, password: "*******" });
-      
-      const [user] = await db
-        .insert(users)
-        .values(insertUser)
-        .returning();
-      
+      console.log("Creating user with data:", {
+        ...insertUser,
+        password: "*******",
+      });
+
+      const [user] = await db.insert(users).values(insertUser).returning();
+
       console.log("User created successfully:", user);
       return user;
     } catch (err) {
@@ -118,13 +156,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserPassword(id: number, password: string): Promise<void> {
-    await db.update(users)
-      .set({ password })
-      .where(eq(users.id, id));
+    await db.update(users).set({ password }).where(eq(users.id, id));
   }
 
   async updateUserLastActive(id: number): Promise<void> {
-    await db.update(users)
+    await db
+      .update(users)
       .set({ lastActive: new Date() })
       .where(eq(users.id, id));
   }
@@ -136,11 +173,12 @@ export class DatabaseStorage implements IStorage {
       updateData.nameLastChanged = new Date();
     }
 
-    const [updatedUser] = await db.update(users)
+    const [updatedUser] = await db
+      .update(users)
       .set(updateData)
       .where(eq(users.id, id))
       .returning();
-    
+
     return updatedUser;
   }
 
@@ -164,11 +202,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTask(id: number, data: UpdateTask): Promise<Task> {
-    const [updatedTask] = await db.update(tasks)
+    const [updatedTask] = await db
+      .update(tasks)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(tasks.id, id))
       .returning();
-    
+
     return updatedTask;
   }
 
@@ -181,17 +220,45 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTasksByAssignee(userId: number): Promise<Task[]> {
-    return await db.select()
+    return await db
+      .select()
       .from(tasks)
       .where(eq(tasks.assignedToId, userId))
       .orderBy(desc(tasks.createdAt));
   }
 
   async getRecentTasks(limit: number = 10): Promise<Task[]> {
-    return await db.select()
+    return await db
+      .select()
       .from(tasks)
       .orderBy(desc(tasks.createdAt))
       .limit(limit);
+  }
+
+  async getAllSuppliers(): Promise<any[]> {
+    return await db.select().from(suppliers);
+  }
+
+  async createSupplier(data: any): Promise<any> {
+    const [supplier] = await db.insert(suppliers).values(data).returning();
+    return supplier;
+  }
+
+  async updateSupplier(id: number, data: any): Promise<any> {
+    const [supplier] = await db
+      .update(suppliers)
+      .set(data)
+      .where(eq(suppliers.supplier_id, id))
+      .returning();
+    return supplier;
+  }
+
+  async deleteSupplier(id: number): Promise<void> {
+    await db.delete(suppliers).where(eq(suppliers.supplier_id, id));
+  }
+
+  async getAllOrders(): Promise<any[]> {
+    return await db.select().from(orders);
   }
 }
 

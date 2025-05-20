@@ -25,9 +25,13 @@ export function ThemeProvider({
   defaultTheme = "system",
 }: ThemeProviderProps) {
   const { user, updateProfileMutation } = useAuth();
-  const [theme, setTheme] = useState<Theme>(
-    user?.theme as Theme || defaultTheme
-  );
+  const [theme, setTheme] = useState<Theme>(defaultTheme);
+
+  useEffect(() => {
+    if (user?.theme) {
+      setTheme(user.theme as Theme);
+    }
+  }, [user?.theme]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -52,7 +56,7 @@ export function ThemeProvider({
       if (user) {
         updateProfileMutation.mutate({
           id: user.id,
-          data: { theme }
+          data: { theme },
         });
       }
     },
