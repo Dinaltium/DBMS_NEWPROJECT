@@ -68,12 +68,27 @@ export const tasks = pgTable("tasks", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
+// Buyers table
+export const buyers = pgTable("buyers", {
+  buyer_id: serial("buyer_id").primaryKey(),
+  buyer_company_name: text("buyer_company_name").notNull(),
+  buyer_email: text("buyer_email").notNull().unique(),
+  buyer_phone: text("buyer_phone").notNull(),
+  buyer_first_name: text("buyer_first_name"),
+  buyer_last_name: text("buyer_last_name"),
+  buyer_description: text("buyer_description"),
+  buyer_city: text("buyer_city").notNull(),
+  buyer_state: text("buyer_state").notNull(),
+  buyer_country: text("buyer_country").notNull(),
+  buyer_zipcode: text("buyer_zipcode").notNull(),
+});
+
 // Suppliers table
 export const suppliers = pgTable("suppliers", {
   supplier_id: serial("supplier_id").primaryKey(),
   first_name: text("first_name").notNull(),
   last_name: text("last_name").notNull(),
-  email: text("email").notNull(),
+  email: text("email").notNull().unique(),
   phone: text("phone").notNull(),
   city: text("city").notNull(),
   state: text("state").notNull(),
@@ -83,11 +98,92 @@ export const suppliers = pgTable("suppliers", {
 
 // Orders table
 export const orders = pgTable("orders", {
-  order_id: serial("order_id").primaryKey(),
-  order_number: text("order_number").notNull().unique(),
+  order_no: serial("order_no").primaryKey(),
+  order_status: text("order_status").notNull(),
+  order_cost: text("order_cost").notNull(),
   order_date: text("order_date").notNull(),
-  status: text("status").notNull(),
-  item: text("item").notNull(),
+  order_buyer_id: integer("order_buyer_id").notNull(),
+  order_supplier_id: integer("order_supplier_id").notNull(),
+});
+
+// Orders_Suppliers bridge table
+export const orders_suppliers = pgTable("orders_suppliers", {
+  os_order_no: integer("os_order_no").notNull(),
+  os_supplier_id: integer("os_supplier_id").notNull(),
+});
+
+// Warehouses table
+export const warehouses = pgTable("warehouses", {
+  warehouse_id: serial("warehouse_id").primaryKey(),
+  warehouse_name: text("warehouse_name").notNull(),
+  warehouse_email: text("warehouse_email").notNull().unique(),
+  warehouse_phone: text("warehouse_phone").notNull(),
+  warehouse_description: text("warehouse_description"),
+  warehouse_city: text("warehouse_city").notNull(),
+  warehouse_state: text("warehouse_state").notNull(),
+  warehouse_country: text("warehouse_country").notNull(),
+  warehouse_zipcode: text("warehouse_zipcode").notNull(),
+  warehouse_supplier_id: integer("warehouse_supplier_id").notNull(),
+});
+
+// Stores bridge table
+export const stores = pgTable("stores", {
+  store_supplier_id: integer("store_supplier_id").notNull(),
+  store_warehouse_id: integer("store_warehouse_id").notNull(),
+});
+
+// Invoices table
+export const invoices = pgTable("invoices", {
+  invoice_no: serial("invoice_no").primaryKey(),
+  invoice_date: text("invoice_date").notNull(),
+  invoice_description: text("invoice_description"),
+  invoice_payment_id: integer("invoice_payment_id").notNull(),
+  invoice_order_no: integer("invoice_order_no").notNull(),
+  invoice_shipping_id: integer("invoice_shipping_id").notNull(),
+});
+
+// Payments table
+export const payments = pgTable("payments", {
+  payment_id: serial("payment_id").primaryKey(),
+  payment_date: text("payment_date").notNull(),
+  payment_type: text("payment_type").notNull(),
+  payment_status: text("payment_status"),
+  payment_cost_id: integer("payment_cost_id").notNull(),
+  payment_buyer_id: integer("payment_buyer_id").notNull(),
+});
+
+// Shippings table
+export const shippings = pgTable("shippings", {
+  shipping_id: serial("shipping_id").primaryKey(),
+  shipping_carrier_name: text("shipping_carrier_name").notNull(),
+  shipping_expected_delivery_date: text("shipping_expected_delivery_date"),
+  shipping_buyer_id: integer("shipping_buyer_id").notNull(),
+  shipping_warehouse_id: integer("shipping_warehouse_id").notNull(),
+  shipping_supplier_id: integer("shipping_supplier_id").notNull(),
+});
+
+// Total_costs table
+export const total_costs = pgTable("total_costs", {
+  cost_id: serial("cost_id").primaryKey(),
+  discount: text("discount"), // Use numeric for money if needed
+  total_amount: text("total_amount"), // Use numeric for money if needed
+  tc_shipping_id: integer("tc_shipping_id").notNull(),
+  tc_order_no: integer("tc_order_no").notNull(),
+});
+
+// Stocks table
+export const stocks = pgTable("stocks", {
+  stock_warehouse_id: integer("stock_warehouse_id").notNull(),
+  stock_commodity_id: integer("stock_commodity_id").notNull(),
+  available_qty: integer("available_qty"),
+});
+
+// Airports table
+export const airports = pgTable("airports", {
+  airport_id: serial("airport_id").primaryKey(),
+  airport_name: text("airport_name").notNull(),
+  airport_address: text("airport_address").notNull(),
+  airport_zipcode: text("airport_zipcode").notNull(),
 });
 
 // Relations

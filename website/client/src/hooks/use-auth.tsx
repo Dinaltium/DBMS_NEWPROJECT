@@ -47,17 +47,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
+      // Clear any existing stale data
+      queryClient.clear();
+
+      // Make login request
       const res = await apiRequest("POST", "/api/login", credentials);
       return await res.json();
     },
     onSuccess: (user: User) => {
+      // Set user data in query cache
       queryClient.setQueryData(["/api/user"], user);
+
+      // Show success message
       toast({
         title: "Login successful",
         description: `Welcome, ${user.name}`,
       });
-      // Force redirect to dashboard after successful login
-      window.location.href = "/";
+
+      // Force a full page reload to ensure fresh state
+      window.location.replace("/");
     },
     onError: (error: Error) => {
       toast({
@@ -91,23 +99,93 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/logout");
-    },
-    onSuccess: () => {
-      queryClient.setQueryData(["/api/user"], null);
-      toast({
-        title: "Logged out",
-        description: "You have been logged out successfully",
-      });
-      // Redirect to login page after logout
-      window.location.href = "/auth";
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Logout failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      // NUCLEAR OPTION - BRUTE FORCE APPROACH
+      console.log("FORCE LOGOUT INITIATED");
+
+      try {
+        // Step 1: Clear client state aggressively
+        console.log("Clearing client state...");
+        queryClient.clear();
+        queryClient.setQueryData(["/api/user"], null);
+
+        // Step 2: Wipe all storage
+        console.log("Clearing all storage...");
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // Step 3: Obliterate all cookies
+        console.log("Destroying all cookies...");
+        document.cookie.split(";").forEach(function (c) {
+          document.cookie = c
+            .replace(/^ +/, "")
+            .replace(
+              /=.*/,
+              "=;expires=" +
+                new Date(0).toUTCString() +
+                ";path=/;domain=" +
+                window.location.hostname
+            );
+        });
+
+        // Step 4: Call server logout in background
+        console.log("Notifying server of logout...");
+        fetch("/api/logout", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Cache-Control": "no-cache, no-store",
+            Pragma: "no-cache",
+          },
+          // Don't wait for response - fire and forget
+        }).catch((e) => console.log("Server logout notification error:", e));
+
+        // Step 5: Show feedback
+        if (toast) {
+          toast({
+            title: "Logging out...",
+            description: "Redirecting to login page",
+          });
+        }
+
+        // Step 6: IMMEDIATE FORCED REDIRECT - Multiple attempts
+        console.log("EXECUTING FORCED NAVIGATION");
+
+        // Add logout parameter
+        const authUrl = `/auth?logout=1&nocache=${Date.now()}`;
+
+        // First attempt
+        console.log("Navigation attempt 1: location.href");
+        window.location.href = authUrl;
+
+        // Second attempt with slight delay
+        setTimeout(() => {
+          console.log("Navigation attempt 2: location.replace");
+          window.location.replace(authUrl + "&attempt=2");
+        }, 50);
+
+        // Third attempt with different technique
+        setTimeout(() => {
+          console.log("Navigation attempt 3: open in self");
+          window.open(authUrl + "&attempt=3", "_self");
+        }, 100);
+
+        // Fourth attempt with page reload
+        setTimeout(() => {
+          console.log("Navigation attempt 4: hard reload");
+          window.location.href = authUrl + "&attempt=4";
+          window.location.reload(true);
+        }, 150);
+      } catch (error) {
+        // Even if there's an error in the main logic, proceed with nuclear option
+        console.error(
+          "Logout error occurred, proceeding with force redirect:",
+          error
+        );
+
+        // Last resort - brute force reload to auth page
+        window.location.href = "/auth?error=1&force=1&t=" + Date.now();
+        window.location.reload(true);
+      }
     },
   });
 

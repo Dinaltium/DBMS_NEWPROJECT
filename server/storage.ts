@@ -65,6 +65,8 @@ export class DatabaseStorage implements IStorage {
     this.seedInitialUsers().catch(console.error);
     // Initialize sample suppliers if they don't exist
     this.seedInitialSuppliers().catch(console.error);
+    // Initialize sample orders if they don't exist
+    this.seedInitialOrders().catch(console.error);
   }
 
   // Add method to seed initial users
@@ -120,6 +122,53 @@ export class DatabaseStorage implements IStorage {
         country: "YourCountry",
         zipcode: "123456",
       });
+    }
+  }
+
+  // Add method to seed initial orders
+  async seedInitialOrders(): Promise<void> {
+    console.log("Checking if sample orders need to be created...");
+    const existingOrders = await this.getAllOrders();
+    if (existingOrders.length === 0) {
+      console.log("Creating sample orders...");
+      await db.insert(orders).values([
+        {
+          order_status: "Inprogress",
+          order_cost: "500",
+          order_date: "2009-01-01T00:08:00.000",
+          order_buyer_id: 1,
+          order_supplier_id: 1,
+        },
+        {
+          order_status: "Inprogress",
+          order_cost: "1000",
+          order_date: "2009-01-01T00:08:00.000",
+          order_buyer_id: 2,
+          order_supplier_id: 2,
+        },
+        {
+          order_status: "Inprogress",
+          order_cost: "2000",
+          order_date: "2009-01-01T00:09:00.000",
+          order_buyer_id: 3,
+          order_supplier_id: 3,
+        },
+        {
+          order_status: "Complete",
+          order_cost: "500",
+          order_date: "2009-01-01T00:15:10.000",
+          order_buyer_id: 4,
+          order_supplier_id: 4,
+        },
+        {
+          order_status: "Shipping",
+          order_cost: "5010",
+          order_date: "2009-01-01T00:18:11.000",
+          order_buyer_id: 5,
+          order_supplier_id: 5,
+        },
+      ]);
+      console.log("Sample orders created.");
     }
   }
 

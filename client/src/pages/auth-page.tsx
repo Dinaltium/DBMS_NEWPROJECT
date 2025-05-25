@@ -140,9 +140,11 @@ export default function AuthPage() {
                 className="space-y-6"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="bg-white/20 p-2 rounded-lg">
-                    <Truck className="h-6 w-6" />
-                  </div>
+                  <img
+                    src="/Assets/1517568614094.png"
+                    alt="Rafan Ahamad Sheik"
+                    className="w-10 h-10 rounded-full"
+                  />
                   <div>
                     <h3 className="font-medium">Rafan Ahamad Sheik</h3>
                     <p className="text-sm text-blue-100">4PA23CS102</p>
@@ -150,9 +152,11 @@ export default function AuthPage() {
                 </div>
 
                 <div className="flex items-center space-x-3">
-                  <div className="bg-white/20 p-2 rounded-lg">
-                    <Package className="h-6 w-6" />
-                  </div>
+                  <img
+                    src="https://github.com/jazeeljr.png"
+                    alt="Shaikh Mohammed Shahil"
+                    className="w-10 h-10 rounded-full"
+                  />
                   <div>
                     <h3 className="font-medium">Shaikh Mohammed Shahil</h3>
                     <p className="text-sm text-blue-100">4PA23CS127</p>
@@ -160,9 +164,11 @@ export default function AuthPage() {
                 </div>
 
                 <div className="flex items-center space-x-3">
-                  <div className="bg-white/20 p-2 rounded-lg">
-                    <Server className="h-6 w-6" />
-                  </div>
+                  <img
+                    src="https://github.com/octocat.png"
+                    alt="Mustafa Muhammad"
+                    className="w-10 h-10 rounded-full"
+                  />
                   <div>
                     <h3 className="font-medium">Mustafa Muhammad</h3>
                     <p className="text-sm text-blue-100">4PA22CS092</p>
@@ -170,9 +176,11 @@ export default function AuthPage() {
                 </div>
 
                 <div className="flex items-center space-x-3">
-                  <div className="bg-white/20 p-2 rounded-lg">
-                    <Shield className="h-6 w-6" />
-                  </div>
+                  <img
+                    src="https://github.com/octocat.png"
+                    alt="Mishab K"
+                    className="w-10 h-10 rounded-full"
+                  />
                   <div>
                     <h3 className="font-medium">Mishab K</h3>
                     <p className="text-sm text-blue-100">4PA23CS073</p>

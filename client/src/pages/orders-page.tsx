@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 
 interface Order {
-  order_id: number;
-  order_number: string;
+  order_no: number;
+  order_status: string;
+  order_cost: string;
   order_date: string;
-  status: string;
-  item: string;
+  order_buyer_id: number;
+  order_supplier_id: number;
 }
 
 export default function OrdersPage() {
@@ -53,19 +54,23 @@ export default function OrdersPage() {
             <table className="min-w-full bg-card border border-border rounded-lg">
               <thead>
                 <tr className="bg-muted">
-                  <th className="px-4 py-2 text-left">Order #</th>
-                  <th className="px-4 py-2 text-left">Date</th>
+                  <th className="px-4 py-2 text-left">Order No</th>
                   <th className="px-4 py-2 text-left">Status</th>
-                  <th className="px-4 py-2 text-left">Item</th>
+                  <th className="px-4 py-2 text-left">Cost</th>
+                  <th className="px-4 py-2 text-left">Date</th>
+                  <th className="px-4 py-2 text-left">Buyer ID</th>
+                  <th className="px-4 py-2 text-left">Supplier ID</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map((order) => (
-                  <tr key={order.order_id} className="border-t border-border">
-                    <td className="px-4 py-2">{order.order_number}</td>
+                  <tr key={order.order_no} className="border-t border-border">
+                    <td className="px-4 py-2">{order.order_no}</td>
+                    <td className="px-4 py-2">{order.order_status}</td>
+                    <td className="px-4 py-2">{order.order_cost}</td>
                     <td className="px-4 py-2">{order.order_date}</td>
-                    <td className="px-4 py-2">{order.status}</td>
-                    <td className="px-4 py-2">{order.item}</td>
+                    <td className="px-4 py-2">{order.order_buyer_id}</td>
+                    <td className="px-4 py-2">{order.order_supplier_id}</td>
                   </tr>
                 ))}
               </tbody>
